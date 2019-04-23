@@ -1,0 +1,186 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ConfigLoader</name>
+    </assembly>
+    <members>
+        <member name="T:ConfigLoader.ConfigFieldAttribute">
+            <summary>
+            Attribute used to mark fields and properties that can be loaded via ConfigObject
+            </summary>
+        </member>
+        <member name="P:ConfigLoader.ConfigFieldAttribute.Mandatory">
+            <summary>
+            If this config field is mandatory cor the loading process to correctly proceed
+            </summary>
+        </member>
+        <member name="P:ConfigLoader.ConfigFieldAttribute.CustomName">
+            <summary>
+            The name of the field in the config, if left blank, the name of the code field is used
+            </summary>
+        </member>
+        <member name="T:ConfigLoader.ConfigObject">
+            <summary>
+            Base class for objects that can be auto-loaded from ConfigNodes using the ConfigFieldAttribute
+            </summary>
+        </member>
+        <member name="P:ConfigLoader.ConfigObject.NodeName">
+            <summary>
+            Name used for the ConfigNode when saving, must be overriden to change from the default "NODE"
+            </summary>
+        </member>
+        <member name="M:ConfigLoader.ConfigObject.#ctor(ConfigNode,System.Boolean)">
+            <summary>
+            Creates a ConfigObject from the given ConfigNode
+            </summary>
+            <param name="node">ConfigNode to load the object from</param>
+            <param name="load">If the object should be loaded right away, defaults to true</param>
+        </member>
+        <member name="M:ConfigLoader.ConfigObject.GetValue(ConfigNode,System.String,System.Type,System.Boolean)">
+            <summary>
+            Loads the given value from a ConfigNode
+            </summary>
+            <param name="node">Node to get the value from</param>
+            <param name="name">Name of the value to get</param>
+            <param name="type">Type of value to get</param>
+            <param name="mandatory">If this field is mandatory or not</param>
+            <returns>The loaded value from the node</returns>
+            <exception cref="T:ConfigLoader.MissingConfigFieldException">Thrown when a mandatory field is not found or could not be loaded</exception>
+        </member>
+        <member name="M:ConfigLoader.ConfigObject.AddValue(ConfigNode,System.Object,System.String)">
+            <summary>
+            Add a value or node to the given ConfigNode
+            </summary>
+            <param name="node">Node to add the value or node to</param>
+            <param name="value">Value or node to add</param>
+            <param name="name">Name of the value (not used for nodes)</param>
+        </member>
+        <member name="M:ConfigLoader.ConfigObject.Load(ConfigNode)">
+            <summary>
+            Loads data from the given ConfigNode to the object
+            </summary>
+            <param name="node">ConfigNode to load data from</param>
+        </member>
+        <member name="M:ConfigLoader.ConfigObject.Save">
+            <summary>
+            Saves the ConfigObject to a ConfigNode, then returns it
+            The name of the created ConfigNode is taken from the NodeName property
+            </summary>
+            <returns>The created ConfigNode containing the saved data</returns>
+        </member>
+        <member name="T:ConfigLoader.Extensions.ConfigNodeExtensions">
+            <summary>
+            ConfigNode extension methods
+            Having out parameters was more convenient to my usage
+            </summary>
+        </member>
+        <member name="M:ConfigLoader.Extensions.ConfigNodeExtensions.TryGetNode(ConfigNode,System.String,ConfigNode@)">
+            <summary>
+            Tries to get a named ConfigNode from the given ConfigNode
+            </summary>
+            <param name="node">Node to get the child node from</param>
+            <param name="name">Name of the node find</param>
+            <param name="result">Resulting node</param>
+            <returns>True if the node has been found, false otherwise</returns>
+        </member>
+        <member name="M:ConfigLoader.Extensions.ConfigNodeExtensions.TryGetNodes(ConfigNode,System.String,ConfigNode[]@)">
+            <summary>
+            Tries to get multiple nodes with the same name from the given ConfigNode
+            </summary>
+            <param name="node">Node to get the child node from</param>
+            <param name="name">Name of the node find</param>
+            <param name="results">An array of the loaded nodes</param>
+            <returns></returns>
+        </member>
+        <member name="M:ConfigLoader.Extensions.ConfigNodeExtensions.TryGetValue(ConfigNode,System.String,System.String@)">
+            <summary>
+            Tries to get a string value from the given ConfigNode
+            </summary>
+            <param name="node">Node to get the value from</param>
+            <param name="name">Name of the value find</param>
+            <param name="result">Resulting string value</param>
+            <returns>True if the value has been found, false otherwise</returns>
+        </member>
+        <member name="M:ConfigLoader.Extensions.ConfigNodeExtensions.TryGetValue(ConfigNode,System.String,System.Int32@)">
+            <summary>
+            Tries to get an int value from the given ConfigNode
+            </summary>
+            <param name="node">Node to get the value from</param>
+            <param name="name">Name of the value find</param>
+            <param name="result">Resulting int value</param>
+            <returns>True if the value has been found, false otherwise</returns>
+        </member>
+        <member name="M:ConfigLoader.Extensions.ConfigNodeExtensions.TryGetValue(ConfigNode,System.String,System.Single@)">
+            <summary>
+            Tries to get a float value from the given ConfigNode
+            </summary>
+            <param name="node">Node to get the value from</param>
+            <param name="name">Name of the value find</param>
+            <param name="result">Resulting float value</param>
+            <returns>True if the value has been found, false otherwise</returns>
+        </member>
+        <member name="M:ConfigLoader.Extensions.ConfigNodeExtensions.TryGetValue(ConfigNode,System.String,System.Double@)">
+            <summary>
+            Tries to get a double value from the given ConfigNode
+            </summary>
+            <param name="node">Node to get the value from</param>
+            <param name="name">Name of the value find</param>
+            <param name="result">Resulting double value</param>
+            <returns>True if the value has been found, false otherwise</returns>
+        </member>
+        <member name="M:ConfigLoader.Extensions.ConfigNodeExtensions.TryGetValue(ConfigNode,System.String,System.Boolean@)">
+            <summary>
+            Tries to get a bool value from the given ConfigNode
+            </summary>
+            <param name="node">Node to get the value from</param>
+            <param name="name">Name of the value find</param>
+            <param name="result">Resulting bool value</param>
+            <returns>True if the value has been found, false otherwise</returns>
+        </member>
+        <member name="M:ConfigLoader.Extensions.ConfigNodeExtensions.TryGetValue(ConfigNode,System.String,UnityEngine.Vector3@)">
+            <summary>
+            Tries to get a Vector3 value from the given ConfigNode
+            </summary>
+            <param name="node">Node to get the value from</param>
+            <param name="name">Name of the value find</param>
+            <param name="result">Resulting Vector3 value</param>
+            <returns>True if the value has been found, false otherwise</returns>
+        </member>
+        <member name="T:ConfigLoader.MissingConfigFieldException">
+            <summary>
+            Exception thrown when a config field is expected but not found
+            </summary>
+        </member>
+        <member name="M:ConfigLoader.MissingConfigFieldException.#ctor">
+            <summary>
+            Creates a new MissingConfigException
+            </summary>
+        </member>
+        <member name="M:ConfigLoader.MissingConfigFieldException.#ctor(System.String)">
+            <summary>
+            Creates a new MissingConfigFieldException with the given message
+            </summary>
+            <param name="message">Exception message</param>
+        </member>
+        <member name="T:ConfigLoader.Utils">
+            <summary>
+            Collection of utility methods
+            </summary>
+        </member>
+        <member name="M:ConfigLoader.Utils.ParseArray(System.String)">
+            <summary>
+            Parses a comma separated string line to a string array. Entries are space trimmed and never empty
+            </summary>
+            <param name="text">Text to parse</param>
+            <returns>The resulting string non-empty string array</returns>
+        </member>
+        <member name="M:ConfigLoader.Utils.ParseArray(System.String,System.Char[])">
+            <summary>
+            Parses a string line with given delimiter to a string array. Entries are space trimmed and are never empty
+            </summary>
+            <param name="text">Text to parse</param>
+            <param name="delimiters">Char delimiters to separate the array</param>
+            <returns>The resulting string non-empty string array</returns>
+        </member>
+    </members>
+</doc>

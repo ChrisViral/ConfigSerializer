@@ -4,7 +4,7 @@
  * The NoDerivs clause may be lifted and distribution of derivative works may be attributed to individuals on a case by case basis.
  * If you wish to obtain such rights, please contact the owner (Christophe Savard) directly through a private channel. */
 
-namespace RealChute.ConfigLoader
+namespace ConfigLoader
 {
     /// <summary>
     /// Exception thrown when a config field is expected but not found

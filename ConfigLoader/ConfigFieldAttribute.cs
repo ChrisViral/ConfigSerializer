@@ -1,10 +1,10 @@
 ﻿using System;
 
-/* RealChute 2 is distributed under CC BY-NC-ND 4.0 INTL (https://creativecommons.org/licenses/by-nc-nd/4.0/)
- * The NoDerivs clause may be lifted and distribution of derivative works may be attributed to individuals on a case by case basis.
- * If you wish to obtain such rights, please contact the owner (Christophe Savard) directly through a private channel. */
+/* ConfigLoader is distributed under CC BY-NC-SA 4.0 INTL (https://creativecommons.org/licenses/by-nc-sa/4.0/)
+ * You are free to redistribute, share, adapt, etc. as long as the original author (Christophe Savard) is properly,
+ * clearly, and explicitly credited, that you do not use this material to a commercial use, and that you share-alike. */
 
-namespace RealChute.ConfigLoader
+namespace ConfigLoader
 {
     /// <summary>
     /// Attribute used to mark fields and properties that can be loaded via ConfigObject

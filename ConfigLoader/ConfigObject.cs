@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Reflection;
-using RealChute.Extensions;
-using RealChute.Utils;
+using ConfigLoader.Extensions;
 using UnityEngine;
 
-/* RealChute 2 is distributed under CC BY-NC-ND 4.0 INTL (https://creativecommons.org/licenses/by-nc-nd/4.0/)
- * The NoDerivs clause may be lifted and distribution of derivative works may be attributed to individuals on a case by case basis.
- * If you wish to obtain such rights, please contact the owner (Christophe Savard) directly through a private channel. */
+/* ConfigLoader is distributed under CC BY-NC-SA 4.0 INTL (https://creativecommons.org/licenses/by-nc-sa/4.0/)
+ * You are free to redistribute, share, adapt, etc. as long as the original author (Christophe Savard) is properly,
+ * clearly, and explicitly credited, that you do not use this material to a commercial use, and that you share-alike. */
 
-namespace RealChute.ConfigLoader
+namespace ConfigLoader
 {
     /// <summary>
     /// Base class for objects that can be auto-loaded from ConfigNodes using the ConfigFieldAttribute
@@ -86,7 +85,7 @@ namespace RealChute.ConfigLoader
             }
             if (type == STRING_ARRAY_TYPE)
             {
-                return node.TryGetValue(name, out string s) || !mandatory ? RCUtils.ParseArray(s) : throw new MissingConfigFieldException($"Mandatory String field {name} missing");
+                return node.TryGetValue(name, out string s) || !mandatory ? Utils.ParseArray(s) : throw new MissingConfigFieldException($"Mandatory String field {name} missing");
             }
             if (type == INT_TYPE)
             {
