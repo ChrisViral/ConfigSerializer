@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 /* ConfigLoader is distributed under CC BY-NC-SA 4.0 INTL (https://creativecommons.org/licenses/by-nc-sa/4.0/)
  * You are free to redistribute, share, adapt, etc. as long as the original author stupid_chris (Christophe Savard) is properly,
@@ -33,6 +34,11 @@ internal static class Utils
             array[i] = array[i].Trim();
         }
         return array;
+    }
+
+    public static void LogException(string message, Exception e)
+    {
+        Debug.LogError($"{message}\n{e.GetType().Name}: {e.Message}\n{e.StackTrace}");
     }
     #endregion
 }

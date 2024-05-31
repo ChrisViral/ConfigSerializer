@@ -1,14 +1,47 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using ConfigLoader.Attributes;
-using ConfigLoader.Extensions;
+using ConfigLoader.Parsers;
 using UnityEngine;
 
 namespace ConfigLoader;
 
 public static class ConfigSerializer
 {
+    private static readonly Dictionary<Type, IConfigValueParser> ConfigValueParsers = new();
+    private static readonly Dictionary<Type, IConfigNodeParser> ConfigNodeParsers = new();
+
+    static ConfigSerializer()
+    {
+        foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            try
+            {
+                foreach (Type type in assembly.GetTypes().Where(t => t.IsDefined(typeof(ConfigParserAttribute))))
+                {
+                    ConfigParserAttribute attribute = type.GetCustomAttribute<ConfigParserAttribute>();
+                    if (typeof(IConfigValueParser).IsAssignableFrom(type))
+                    {
+                        IConfigValueParser parser = Activator.CreateInstance<IConfigValueParser>();
+                        ConfigValueParsers.Add(attribute.TargetType, parser);
+                    }
+                    else if (typeof(IConfigNodeParser).IsAssignableFrom(type))
+                    {
+                        IConfigNodeParser parser = Activator.CreateInstance<IConfigNodeParser>();
+                        ConfigNodeParsers.Add(attribute.TargetType, parser);
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                Utils.LogException($"[ConfigSerializer]: Could not load types of assembly {assembly.GetName().Name}", e);
+            }
+        }
+    }
+
     #region Deserialize
     public static T Deserialize<T>(ConfigNode node) where T : IConfigObject, new()
     {
@@ -32,7 +65,7 @@ public static class ConfigSerializer
             }
             catch (Exception e)
             {
-                Debug.LogError($"[ConfigSerializer]: Could not load {member.Name} while deserializing {typeof(T).FullName}\n{e.GetType().Name}: {e.Message}\n{e.StackTrace}");
+                Utils.LogException($"[ConfigSerializer]: Could not load {member.Name} while deserializing {typeof(T).FullName}", e);
             }
         }
     }
@@ -68,7 +101,7 @@ public static class ConfigSerializer
 
     private static bool FilterConfigMembers(MemberInfo member, object criteria) => member.IsDefined(typeof(ConfigFieldAttribute), false);
 
-    private static void LoadMember<T>(MemberInfo member, ConfigNode node, T instance)
+    private static void LoadMember(MemberInfo member, ConfigNode node, object instance)
     {
         ConfigFieldAttribute attribute = member.GetCustomAttribute<ConfigFieldAttribute>();
         string name = string.IsNullOrEmpty(attribute.Name) ? member.Name : attribute.Name;

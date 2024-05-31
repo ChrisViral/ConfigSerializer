@@ -55,11 +55,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\ConfigFieldAttribute.cs" />
+    <Compile Include="Attributes\ConfigParserAttribute.cs" />
     <Compile Include="ConfigObject.cs" />
     <Compile Include="Extensions\ConfigNodeExtensions.cs" />
     <Compile Include="IConfigObject.cs" />
     <Compile Include="ConfigSerializer.cs" />
     <Compile Include="MissingConfigFieldException.cs" />
+    <Compile Include="Parsers\IConfigNodeParser.cs" />
+    <Compile Include="Parsers\IConfigValueParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
