@@ -6,10 +6,6 @@
 
 namespace ConfigLoader.Extensions;
 
-/// <summary>
-/// ConfigNode extension methods
-/// Having out parameters was more convenient to my usage
-/// </summary>
 internal static class ConfigNodeExtensions
 {
     #region Extension methods

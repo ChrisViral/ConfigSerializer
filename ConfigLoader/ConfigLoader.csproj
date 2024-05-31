@@ -60,6 +60,8 @@
     <Compile Include="Attributes\ConfigParserAttribute.cs" />
     <Compile Include="ConfigObject.cs" />
     <Compile Include="Extensions\ConfigNodeExtensions.cs" />
+    <Compile Include="Extensions\DictionaryExtensions.cs" />
+    <Compile Include="Extensions\LoggingExtensions.cs" />
     <Compile Include="IConfigObject.cs" />
     <Compile Include="ConfigSerializer.cs" />
     <Compile Include="MissingConfigFieldException.cs" />

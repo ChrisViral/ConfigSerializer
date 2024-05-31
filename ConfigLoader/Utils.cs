@@ -36,9 +36,15 @@ internal static class Utils
         return array;
     }
 
-    public static void LogException(string message, Exception e)
+    /// <summary>
+    /// Logs the given exception
+    /// </summary>
+    /// <param name="header">Log header</param>
+    /// <param name="message">Error message to log</param>
+    /// <param name="e">Exception to log</param>
+    public static void LogException(string header, object message, Exception e)
     {
-        Debug.LogError($"{message}\n{e.GetType().Name}: {e.Message}\n{e.StackTrace}");
+        Debug.LogError($"[{header}]: {message}\n{e.GetType().Name}: {e.Message}\n{e.StackTrace}");
     }
     #endregion
 }
