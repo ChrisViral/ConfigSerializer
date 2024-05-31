@@ -1,47 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using ConfigLoader.Attributes;
-using ConfigLoader.Parsers;
-using UnityEngine;
+using ConfigLoader.Extensions;
 
 namespace ConfigLoader;
 
 public static class ConfigSerializer
 {
-    private static readonly Dictionary<Type, IConfigValueParser> ConfigValueParsers = new();
-    private static readonly Dictionary<Type, IConfigNodeParser> ConfigNodeParsers = new();
-
-    static ConfigSerializer()
-    {
-        foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-        {
-            try
-            {
-                foreach (Type type in assembly.GetTypes().Where(t => t.IsDefined(typeof(ConfigParserAttribute))))
-                {
-                    ConfigParserAttribute attribute = type.GetCustomAttribute<ConfigParserAttribute>();
-                    if (typeof(IConfigValueParser).IsAssignableFrom(type))
-                    {
-                        IConfigValueParser parser = Activator.CreateInstance<IConfigValueParser>();
-                        ConfigValueParsers.Add(attribute.TargetType, parser);
-                    }
-                    else if (typeof(IConfigNodeParser).IsAssignableFrom(type))
-                    {
-                        IConfigNodeParser parser = Activator.CreateInstance<IConfigNodeParser>();
-                        ConfigNodeParsers.Add(attribute.TargetType, parser);
-                    }
-                }
-
-            }
-            catch (Exception e)
-            {
-                Utils.LogException($"[ConfigSerializer]: Could not load types of assembly {assembly.GetName().Name}", e);
-            }
-        }
-    }
-
     #region Deserialize
     public static T Deserialize<T>(ConfigNode node) where T : IConfigObject, new()
     {
@@ -65,7 +31,7 @@ public static class ConfigSerializer
             }
             catch (Exception e)
             {
-                Utils.LogException($"[ConfigSerializer]: Could not load {member.Name} while deserializing {typeof(T).FullName}", e);
+                Utils.LogException(nameof(ConfigSerializer), $"Could not load {member.Name} while deserializing {typeof(T).FullName}", e);
             }
         }
     }
