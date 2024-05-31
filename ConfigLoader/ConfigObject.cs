@@ -176,11 +176,11 @@ public abstract class ConfigObject
             switch (mi)
             {
                 case FieldInfo fi:
-                    fi.SetValue(this, GetValue(node, valueName, fi.FieldType, attribute.Mandatory));
+                    fi.SetValue(this, GetValue(node, valueName, fi.FieldType, attribute.Required));
                     break;
 
                 case PropertyInfo pi:
-                    pi.SetValue(this, GetValue(node, valueName, pi.PropertyType, attribute.Mandatory), null);
+                    pi.SetValue(this, GetValue(node, valueName, pi.PropertyType, attribute.Required), null);
                     break;
             }
         }

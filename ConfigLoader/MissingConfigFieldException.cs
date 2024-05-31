@@ -9,18 +9,25 @@ namespace ConfigLoader;
 /// <summary>
 /// Exception thrown when a config field is expected but not found
 /// </summary>
-public class MissingConfigFieldException : Exception
+public class MissingConfigFieldException : ArgumentException
 {
     #region Constructors
     /// <summary>
-    /// Creates a new MissingConfigException
+    /// Creates a new <see cref="MissingConfigFieldException"/>
     /// </summary>
     public MissingConfigFieldException() { }
 
     /// <summary>
-    /// Creates a new MissingConfigFieldException with the given message
+    /// Creates a new <see cref="MissingConfigFieldException"/> with the given message
     /// </summary>
     /// <param name="message">Exception message</param>
     public MissingConfigFieldException(string message) : base(message) { }
+
+    /// <summary>
+    /// Creates a new <see cref="MissingConfigFieldException"/> with the given message and missing field name
+    /// </summary>
+    /// <param name="message">Exception message</param>
+    /// <param name="fieldName">Name of the missing field</param>
+    public MissingConfigFieldException(string message, string fieldName) : base(message, fieldName) { }
     #endregion
 }

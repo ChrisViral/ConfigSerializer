@@ -14,12 +14,16 @@ public sealed class ConfigFieldAttribute : Attribute
 {
     #region Properties
     /// <summary>
-    /// If this config field is mandatory cor the loading process to correctly proceed
-    /// </summary>
-    public bool Mandatory { get; set; } = false;
-    /// <summary>
     /// The name of the field in the config, if left blank, the name of the code field is used
     /// </summary>
-    public string Name { get; set; } = null;
+    public string Name { get; set; } = string.Empty;
+    /// <summary>
+    /// If this config field is required to exist during deserialization
+    /// </summary>
+    public bool Required { get; set; } = false;
+    /// <summary>
+    /// Separator string for array types
+    /// </summary>
+    public string Separator { get; set; } = ",";
     #endregion
 }

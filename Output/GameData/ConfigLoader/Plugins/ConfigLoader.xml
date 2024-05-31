@@ -4,17 +4,17 @@
         <name>ConfigLoader</name>
     </assembly>
     <members>
-        <member name="T:ConfigLoader.ConfigFieldAttribute">
+        <member name="T:ConfigLoader.Attributes.ConfigFieldAttribute">
             <summary>
             Attribute used to mark fields and properties that can be loaded via ConfigObject
             </summary>
         </member>
-        <member name="P:ConfigLoader.ConfigFieldAttribute.Mandatory">
+        <member name="P:ConfigLoader.Attributes.ConfigFieldAttribute.Mandatory">
             <summary>
             If this config field is mandatory cor the loading process to correctly proceed
             </summary>
         </member>
-        <member name="P:ConfigLoader.ConfigFieldAttribute.CustomName">
+        <member name="P:ConfigLoader.Attributes.ConfigFieldAttribute.Name">
             <summary>
             The name of the field in the config, if left blank, the name of the code field is used
             </summary>
@@ -83,15 +83,6 @@
             <param name="result">Resulting node</param>
             <returns>True if the node has been found, false otherwise</returns>
         </member>
-        <member name="M:ConfigLoader.Extensions.ConfigNodeExtensions.TryGetNodes(ConfigNode,System.String,ConfigNode[]@)">
-            <summary>
-            Tries to get multiple nodes with the same name from the given ConfigNode
-            </summary>
-            <param name="node">Node to get the child node from</param>
-            <param name="name">Name of the node find</param>
-            <param name="results">An array of the loaded nodes</param>
-            <returns></returns>
-        </member>
         <member name="M:ConfigLoader.Extensions.ConfigNodeExtensions.TryGetValue(ConfigNode,System.String,System.String@)">
             <summary>
             Tries to get a string value from the given ConfigNode
@@ -145,6 +136,16 @@
             <param name="name">Name of the value find</param>
             <param name="result">Resulting Vector3 value</param>
             <returns>True if the value has been found, false otherwise</returns>
+        </member>
+        <member name="T:ConfigLoader.IConfigObject">
+            <summary>
+            Autoloading Config Object interface
+            </summary>
+        </member>
+        <member name="P:ConfigLoader.IConfigObject.Name">
+            <summary>
+            Name of the ConfigNode to save/load to
+            </summary>
         </member>
         <member name="T:ConfigLoader.MissingConfigFieldException">
             <summary>
