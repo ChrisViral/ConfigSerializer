@@ -16,14 +16,14 @@ public sealed class ConfigFieldAttribute : Attribute
     /// <summary>
     /// The name of the field in the config, if left blank, the name of the code field is used
     /// </summary>
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
     /// <summary>
     /// If this config field is required to exist during deserialization
     /// </summary>
-    public bool Required { get; set; } = false;
+    public bool Required { get; init; } = false;
     /// <summary>
     /// Separator string for array types
     /// </summary>
-    public string Separator { get; set; } = ",";
+    public string Separator { get; init; } = ",";
     #endregion
 }
