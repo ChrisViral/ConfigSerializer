@@ -1,6 +1,6 @@
 ﻿namespace ConfigLoader.Parsers;
 
-public interface IConfigValueParser
+public interface IConfigValueParser : IConfigParserBase
 {
     object Parse(string value);
 

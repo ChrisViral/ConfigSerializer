@@ -66,6 +66,7 @@
     <Compile Include="ConfigSerializer.cs" />
     <Compile Include="MissingConfigFieldException.cs" />
     <Compile Include="Parsers\IConfigNodeParser.cs" />
+    <Compile Include="Parsers\IConfigParserBase.cs" />
     <Compile Include="Parsers\IConfigValueParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\IsExternalInit.cs" />
