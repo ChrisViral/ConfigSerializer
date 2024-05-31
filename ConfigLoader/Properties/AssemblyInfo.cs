@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("ConfigLoader")]
-[assembly: AssemblyDescription("Auto ConfigNode save/load system")]
+[assembly: AssemblyDescription("Automated ConfigNode save/load system")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("ConfigLoader")]
-[assembly: AssemblyCopyright("Copyright © Christophe Savard 2019")]
+[assembly: AssemblyCopyright("Copyright © Christophe Savard (stupid_chris) 2024")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

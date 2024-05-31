@@ -87,7 +87,7 @@ namespace ConfigLoader.Extensions
             result = 0;
             return false;
         }
-        
+
         /// <summary>
         /// Tries to get a float value from the given ConfigNode
         /// </summary>
@@ -105,7 +105,7 @@ namespace ConfigLoader.Extensions
             result = 0f;
             return false;
         }
-        
+
         /// <summary>
         /// Tries to get a double value from the given ConfigNode
         /// </summary>
@@ -123,7 +123,7 @@ namespace ConfigLoader.Extensions
             result = 0d;
             return false;
         }
-        
+
         /// <summary>
         /// Tries to get a bool value from the given ConfigNode
         /// </summary>
@@ -141,7 +141,7 @@ namespace ConfigLoader.Extensions
             result = false;
             return false;
         }
-        
+
         /// <summary>
         /// Tries to get a Vector3 value from the given ConfigNode
         /// </summary>
