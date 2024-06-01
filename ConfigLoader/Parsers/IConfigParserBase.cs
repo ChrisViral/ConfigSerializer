@@ -7,4 +7,15 @@ namespace ConfigLoader.Parsers;
 /// <summary>
 /// Config Parser base
 /// </summary>
-public interface IConfigParserBase { }
+public interface IConfigParserBase;
+
+/// <summary>
+/// Config Parser generic base
+/// </summary>
+/// <typeparam name="T">Type of object being parsed</typeparam>
+public interface IConfigParserBase<T> : IConfigParserBase
+{
+    object Parse(T node, in ConfigSerializerSettings settings);
+
+    T Save(object obj, in ConfigSerializerSettings settings);
+}
