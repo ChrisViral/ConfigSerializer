@@ -9,14 +9,15 @@ namespace ConfigLoader.Attributes;
 /// <summary>
 /// Config parser attribute
 /// </summary>
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, Inherited = false)]
-public class ConfigParserAttribute : Attribute
+[AttributeUsage(AttributeTargets.Class, Inherited = false)]
+public class ConfigParserAttribute(Type targetType) : Attribute
 {
     #region Properties
     /// <summary>
     /// Type targeted by this parser
     /// </summary>
-    public Type TargetType { get; init; }
+    public Type TargetType { get; } = targetType;
+
     /// <summary>
     /// Parser priority
     /// </summary>

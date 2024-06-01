@@ -22,8 +22,12 @@ public sealed class ConfigFieldAttribute : Attribute
     /// </summary>
     public bool Required { get; init; } = false;
     /// <summary>
+    /// How loading of array values is handled, defaults to <see cref="ArrayHandling.SINGLE_VALUE"/>;
+    /// </summary>
+    public ArrayHandling? ArrayHandling { get; init; }
+    /// <summary>
     /// Separator string for array types
     /// </summary>
-    public string Separator { get; init; } = ",";
+    public char? ArraySeparator { get; init; }
     #endregion
 }
