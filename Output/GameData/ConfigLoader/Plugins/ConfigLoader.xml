@@ -9,14 +9,34 @@
             Attribute used to mark fields and properties that can be loaded via ConfigObject
             </summary>
         </member>
-        <member name="P:ConfigLoader.Attributes.ConfigFieldAttribute.Mandatory">
-            <summary>
-            If this config field is mandatory cor the loading process to correctly proceed
-            </summary>
-        </member>
         <member name="P:ConfigLoader.Attributes.ConfigFieldAttribute.Name">
             <summary>
             The name of the field in the config, if left blank, the name of the code field is used
+            </summary>
+        </member>
+        <member name="P:ConfigLoader.Attributes.ConfigFieldAttribute.Required">
+            <summary>
+            If this config field is required to exist during deserialization
+            </summary>
+        </member>
+        <member name="P:ConfigLoader.Attributes.ConfigFieldAttribute.Separator">
+            <summary>
+            Separator string for array types
+            </summary>
+        </member>
+        <member name="T:ConfigLoader.Attributes.ConfigParserAttribute">
+            <summary>
+            Config parser attribute
+            </summary>
+        </member>
+        <member name="P:ConfigLoader.Attributes.ConfigParserAttribute.TargetType">
+            <summary>
+            Type targeted by this parser
+            </summary>
+        </member>
+        <member name="P:ConfigLoader.Attributes.ConfigParserAttribute.Priority">
+            <summary>
+            Parser priority
             </summary>
         </member>
         <member name="T:ConfigLoader.ConfigObject">
@@ -67,12 +87,6 @@
             The name of the created ConfigNode is taken from the NodeName property
             </summary>
             <returns>The created ConfigNode containing the saved data</returns>
-        </member>
-        <member name="T:ConfigLoader.Extensions.ConfigNodeExtensions">
-            <summary>
-            ConfigNode extension methods
-            Having out parameters was more convenient to my usage
-            </summary>
         </member>
         <member name="M:ConfigLoader.Extensions.ConfigNodeExtensions.TryGetNode(ConfigNode,System.String,ConfigNode@)">
             <summary>
@@ -137,6 +151,64 @@
             <param name="result">Resulting Vector3 value</param>
             <returns>True if the value has been found, false otherwise</returns>
         </member>
+        <member name="M:ConfigLoader.Extensions.LoggingExtensions.Log(UnityEngine.Object,System.Object)">
+            <summary>
+            Logs the given message
+            </summary>
+            <param name="obj">Logging object</param>
+            <param name="message">Message to log</param>
+        </member>
+        <member name="M:ConfigLoader.Extensions.LoggingExtensions.LogWarning(UnityEngine.Object,System.Object)">
+            <summary>
+            Logs the given warning
+            </summary>
+            <param name="obj">Logging object</param>
+            <param name="message">Warning to log</param>
+        </member>
+        <member name="M:ConfigLoader.Extensions.LoggingExtensions.LogError(UnityEngine.Object,System.Object)">
+            <summary>
+            Logs the given error
+            </summary>
+            <param name="obj">Logging object</param>
+            <param name="message">Error to log</param>
+        </member>
+        <member name="M:ConfigLoader.Extensions.LoggingExtensions.LogException(UnityEngine.Object,System.Object,System.Exception)">
+            <summary>
+            Logs the given exception
+            </summary>
+            <param name="obj">Logging object</param>
+            <param name="message">Error message to log</param>
+            <param name="e">Exception to log</param>
+        </member>
+        <member name="M:ConfigLoader.Extensions.LoggingExtensions.Log``1(``0,System.Object)">
+            <summary>
+            Logs the given message
+            </summary>
+            <param name="obj">Logging object</param>
+            <param name="message">Message to log</param>
+        </member>
+        <member name="M:ConfigLoader.Extensions.LoggingExtensions.LogWarning``1(``0,System.Object)">
+            <summary>
+            Logs the given warning
+            </summary>
+            <param name="obj">Logging object</param>
+            <param name="message">Warning to log</param>
+        </member>
+        <member name="M:ConfigLoader.Extensions.LoggingExtensions.LogError``1(``0,System.Object)">
+            <summary>
+            Logs the given error
+            </summary>
+            <param name="obj">Logging object</param>
+            <param name="message">Error to log</param>
+        </member>
+        <member name="M:ConfigLoader.Extensions.LoggingExtensions.LogException``1(``0,System.Object,System.Exception)">
+            <summary>
+            Logs the given exception
+            </summary>
+            <param name="obj">Logging object</param>
+            <param name="message">Error message to log</param>
+            <param name="e">Exception to log</param>
+        </member>
         <member name="T:ConfigLoader.IConfigObject">
             <summary>
             Autoloading Config Object interface
@@ -154,14 +226,106 @@
         </member>
         <member name="M:ConfigLoader.MissingConfigFieldException.#ctor">
             <summary>
-            Creates a new MissingConfigException
+            Creates a new <see cref="T:ConfigLoader.MissingConfigFieldException"/>
             </summary>
         </member>
         <member name="M:ConfigLoader.MissingConfigFieldException.#ctor(System.String)">
             <summary>
-            Creates a new MissingConfigFieldException with the given message
+            Creates a new <see cref="T:ConfigLoader.MissingConfigFieldException"/> with the given message
             </summary>
             <param name="message">Exception message</param>
+        </member>
+        <member name="M:ConfigLoader.MissingConfigFieldException.#ctor(System.String,System.String)">
+            <summary>
+            Creates a new <see cref="T:ConfigLoader.MissingConfigFieldException"/> with the given message and missing field name
+            </summary>
+            <param name="message">Exception message</param>
+            <param name="fieldName">Name of the missing field</param>
+        </member>
+        <member name="T:ConfigLoader.Parsers.IConfigParserBase">
+            <summary>
+            Config Parser base
+            </summary>
+        </member>
+        <member name="T:ConfigLoader.Parsers.ParserDatabase">
+            <summary>
+            Parser objects database
+            </summary>
+        </member>
+        <member name="P:ConfigLoader.Parsers.ParserDatabase.Instance">
+            <summary>
+            ParserDatabase instance
+            </summary>
+        </member>
+        <member name="P:ConfigLoader.Parsers.ParserDatabase.ValueParsers">
+            <summary>
+            ConfigNode value parsers
+            </summary>
+        </member>
+        <member name="P:ConfigLoader.Parsers.ParserDatabase.NodeParsers">
+            <summary>
+            ConfigNode node parsers
+            </summary>
+        </member>
+        <member name="T:ConfigLoader.Parsers.ParserFilter`1">
+            <summary>
+            Parser type filter
+            </summary>
+            <typeparam name="TParser">Parser type</typeparam>
+        </member>
+        <member name="T:ConfigLoader.Parsers.ParserFilter`1.ParserData">
+            <summary>
+            Parser data
+            </summary>
+            <param name="Parser">Parser instance</param>
+            <param name="Attribute">Parser attribute</param>
+        </member>
+        <member name="M:ConfigLoader.Parsers.ParserFilter`1.ParserData.#ctor(`0,ConfigLoader.Attributes.ConfigParserAttribute)">
+            <summary>
+            Parser data
+            </summary>
+            <param name="Parser">Parser instance</param>
+            <param name="Attribute">Parser attribute</param>
+        </member>
+        <member name="P:ConfigLoader.Parsers.ParserFilter`1.ParserData.Parser">
+            <summary>Parser instance</summary>
+        </member>
+        <member name="P:ConfigLoader.Parsers.ParserFilter`1.ParserData.Attribute">
+            <summary>Parser attribute</summary>
+        </member>
+        <member name="P:ConfigLoader.Parsers.ParserFilter`1.ParsersByType">
+            <summary>
+            Parsers keyed by parser type
+            </summary>
+        </member>
+        <member name="P:ConfigLoader.Parsers.ParserFilter`1.ParsersByTargetType">
+            <summary>
+            Parsers keyed by target type
+            </summary>
+        </member>
+        <member name="M:ConfigLoader.Parsers.ParserFilter`1.#ctor(System.Collections.Generic.IEnumerable{System.Type})">
+            <summary>
+            Creates a new ParserFilter from a set of valid types based on the parser subtype
+            </summary>
+            <param name="parserTypes">Enumerable of valid parser types</param>
+        </member>
+        <member name="M:ConfigLoader.Parsers.ParserFilter`1.TryGetParserByType(System.Type,`0@)">
+            <summary>
+            Tries to get a parser for the given parser type
+            </summary>
+            <param name="parserType">Parser type to find</param>
+            <param name="parser">Found parser instance, uninitialized if no match found</param>
+            <returns><see langword="true"/> if a valid parser has been found, otherwise <see langword="false"/></returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="parserType"/> is <see langword="null"/></exception>
+        </member>
+        <member name="M:ConfigLoader.Parsers.ParserFilter`1.TryFindBestParserForType(System.Type,`0@)">
+            <summary>
+            Tries to find the best parser for a given target type
+            </summary>
+            <param name="targetType">Target type to parse to</param>
+            <param name="parser">Found parser instance, uninitialized if no match found</param>
+            <returns><see langword="true"/> if a valid parser has been found, otherwise <see langword="false"/></returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="targetType"/> is <see langword="null"/></exception>
         </member>
         <member name="T:ConfigLoader.Utils">
             <summary>
@@ -182,6 +346,16 @@
             <param name="text">Text to parse</param>
             <param name="delimiters">Char delimiters to separate the array</param>
             <returns>The resulting string non-empty string array</returns>
+        </member>
+        <member name="T:System.Runtime.CompilerServices.IsExternalInit">
+            <summary>
+                Reserved to be used by the compiler for tracking metadata.
+                This class should not be used by developers in source code.
+            </summary>
+            <remarks>
+                This definition is provided by the <i>IsExternalInit</i> NuGet package (https://www.nuget.org/packages/IsExternalInit).
+                Please see https://github.com/manuelroemer/IsExternalInit for more information.
+            </remarks>
         </member>
     </members>
 </doc>
