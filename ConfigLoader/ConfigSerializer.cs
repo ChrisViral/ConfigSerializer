@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reflection;
 using ConfigLoader.Attributes;
 using ConfigLoader.Extensions;
@@ -13,6 +15,36 @@ namespace ConfigLoader;
 
 public static class ConfigSerializer
 {
+    private static class SerializableMembers<T> where T : ISerializableConfig
+    {
+        private const MemberTypes MEMBERS = MemberTypes.Field | MemberTypes.Property;
+        private const BindingFlags FLAGS  = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+
+        public static ReadOnlyCollection<MemberInfo> Members { get; }
+
+        static SerializableMembers()
+        {
+            // Get all relevant members in the type
+            Members = typeof(T).StripNullable().FindMembers(MEMBERS, FLAGS, FilterConfigMembers, null).ToList().AsReadOnly();
+        }
+
+        private static bool FilterConfigMembers(MemberInfo member, object criteria)
+        {
+            // Ensure the member has the proper attribute
+            if (!member.IsDefined(typeof(ConfigFieldAttribute), false)) return false;
+
+            Type? targetType = member switch
+            {
+                FieldInfo field       => field.FieldType,
+                PropertyInfo property => property.PropertyType,
+                _                     => null
+            };
+
+            // Ensure the type of the member is instantiable
+            return targetType?.IsInstantiable() ?? false;
+        }
+    }
+
     #region Fields
     /// <summary>
     /// ICollection Add reflection parameter buffer
@@ -43,7 +75,7 @@ public static class ConfigSerializer
         ConfigSerializerSettings settings = serializerSettings ?? new ConfigSerializerSettings();
 
         // Load all members individually
-        foreach (MemberInfo member in GetMembers<T>())
+        foreach (MemberInfo member in SerializableMembers<T>.Members)
         {
             try
             {
@@ -84,39 +116,6 @@ public static class ConfigSerializer
     #endregion
 
     #region Methods
-    private static IEnumerable<MemberInfo> GetMembers<T>() where T : ISerializableConfig
-    {
-        const MemberTypes MEMBERS = MemberTypes.Field | MemberTypes.Property;
-        const BindingFlags FLAGS  = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-
-        // Get all relevant members in the type
-        return typeof(T).StripNullable().FindMembers(MEMBERS, FLAGS, FilterConfigMembers, null);
-    }
-
-    private static bool FilterConfigMembers(MemberInfo member, object criteria)
-    {
-        // Ensure the member has the proper attribute
-        if (!member.IsDefined(typeof(ConfigFieldAttribute), false)) return false;
-
-        Type? targetType = member switch
-        {
-            FieldInfo field       => field.FieldType,
-            PropertyInfo property => property.PropertyType,
-            _                     => null
-        };
-
-        // Ensure the type of the member is instantiable
-        return targetType?.IsInstantiable() ?? false;
-    }
-
-    private static void EnsureMemberLoaded(object? loadedValue, string name, bool required)
-    {
-        if (loadedValue is null && required)
-        {
-            throw new MissingConfigFieldException("Field could not be properly loaded", name);
-        }
-    }
-
     private static void LoadMember(MemberInfo member, ConfigNode node, object instance, in ConfigSerializerSettings settings)
     {
         // Get load data
@@ -141,6 +140,14 @@ public static class ConfigSerializer
 
             default:
                 throw new InvalidOperationException($"Invalid member type detected ({member.GetType()})");
+        }
+    }
+
+    private static void EnsureMemberLoaded(object? loadedValue, string name, bool required)
+    {
+        if (loadedValue is null && required)
+        {
+            throw new MissingConfigFieldException("Field could not be properly loaded", name);
         }
     }
 
@@ -188,6 +195,7 @@ public static class ConfigSerializer
     {
         // Create collection object and get handle to add method
         object collection = Activator.CreateInstance(collectionType);
+        // This cannot be cached as late-binding on generics is not allowed
         MethodInfo addMethod = collectionType.GetMethod(nameof(ICollection<int>.Add))!;
 
         // Parse values then add them to the collection
