@@ -64,6 +64,7 @@
     <Compile Include="Extensions\DictionaryExtensions.cs" />
     <Compile Include="Extensions\LoggingExtensions.cs" />
     <Compile Include="IConfigObject.cs" />
+    <Compile Include="ISerializableConfig.cs" />
     <Compile Include="ConfigSerializer.cs" />
     <Compile Include="MissingConfigFieldException.cs" />
     <Compile Include="Parsers\IConfigNodeParser.cs" />

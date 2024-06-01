@@ -7,12 +7,9 @@ namespace ConfigLoader;
 /// <summary>
 /// Autoloading Config Object interface
 /// </summary>
-public interface IConfigObject
+public interface ISerializableConfig : IConfigNode
 {
-    #region Properties
-    /// <summary>
-    /// Name of the ConfigNode to save/load to
-    /// </summary>
-    string Name { get; }
-    #endregion
+    void OnPostDeserialize();
+
+    void OnPreSerialize();
 }
