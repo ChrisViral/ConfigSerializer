@@ -48,10 +48,9 @@ public class ParserDatabase
         }
 
         // Filter out valid parser types
-        Type[] parserTypes = allTypes.Where(t => typeof(IConfigParserBase).IsAssignableFrom(t)
-                                              && t.IsDefined(typeof(ConfigParserAttribute))
-                                              && !t.IsAbstract
-                                              && !t.IsInterface)
+        Type[] parserTypes = allTypes.Where(t => t.IsInstantiable()
+                                              && typeof(IConfigParserBase).IsAssignableFrom(t)
+                                              && t.IsDefined(typeof(ConfigParserAttribute)))
                                      .ToArray();
 
         // Create relevant filters

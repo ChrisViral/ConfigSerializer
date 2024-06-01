@@ -23,7 +23,7 @@ public class ParserFilter<TParser> where TParser : IConfigParserBase
     /// </summary>
     /// <param name="Parser">Parser instance</param>
     /// <param name="Attribute">Parser attribute</param>
-    public record struct ParserData(TParser Parser, ConfigParserAttribute Attribute);
+    public readonly record struct ParserData(TParser Parser, ConfigParserAttribute Attribute);
 
     #region Properties
     /// <summary>
