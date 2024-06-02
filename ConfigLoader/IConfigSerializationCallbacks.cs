@@ -4,7 +4,9 @@
 
 namespace ConfigLoader;
 
-/// <summary>
-/// Autoloading Config Object interface
-/// </summary>
-public interface ISerializableConfig : IConfigNode;
+public interface IConfigSerializationCallbacks
+{
+    void OnPreSerialize();
+
+    void OnPostDeserialize();
+}

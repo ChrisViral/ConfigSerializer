@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -292,7 +292,7 @@ public static class ConfigSerializer
         if (ParserDatabase.Instance.NodeParsers.TryFindBestParserForType(targetType, out IConfigNodeParser? parser))
         {
             object parsed = parser!.Parse(node, settings);
-            if (parsed is ISerializableConfig serializable)
+            if (parsed is IConfigSerializationCallbacks serializable)
             {
                 // Call PostDeserialize if relevant
                 serializable.OnPostDeserialize();
@@ -448,6 +448,12 @@ public static class ConfigSerializer
         ConfigNode savedNode = new(name);
         if (ParserDatabase.Instance.NodeParsers.TryFindBestParserForType(targetType, out IConfigNodeParser? parser))
         {
+            if (value is IConfigSerializationCallbacks serializable)
+            {
+                // Call PreSerialize if relevant
+                serializable.OnPreSerialize();
+            }
+
             parser!.Save(savedNode, value, settings);
         }
 
