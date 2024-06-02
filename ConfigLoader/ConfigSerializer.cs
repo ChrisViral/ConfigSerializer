@@ -75,7 +75,7 @@ public static class ConfigSerializer
     private static readonly object[] CollectionAddParameters = new object[1];
     #endregion
 
-        #region Serialize
+    #region Serialize
     /// <summary>
     /// Serializes the object to a <see cref="ConfigNode"/> and returns it
     /// </summary>
@@ -165,7 +165,7 @@ public static class ConfigSerializer
             // Save node collections, handles both ICollection and arrays
             WriteCollection(node, name, value, elementType!.StripNullable(), settings);
         }
-        else if (typeof(IConfigNode).IsAssignableFrom(targetType))
+        else if (targetType.IsConfigType())
         {
             // Save node objects
             ConfigNode savedNode = WriteNode(name, value, targetType, settings);
@@ -183,7 +183,7 @@ public static class ConfigSerializer
     {
         // Get enumerable implementation, this shouldn't ever fail, but if it does, we want it to be loud
         IEnumerable collectionEnumerable = (IEnumerable)collection;
-        if (typeof(IConfigNode).IsAssignableFrom(elementType))
+        if (elementType.IsConfigType())
         {
             foreach (object element in collectionEnumerable)
             {
@@ -370,7 +370,7 @@ public static class ConfigSerializer
         }
 
         // ReSharper disable once ConvertIfStatementToReturnStatement
-        if (typeof(IConfigNode).IsAssignableFrom(targetType))
+        if (targetType.IsConfigType())
         {
             // Parse node-based object
             return node.TryGetNode(name, out ConfigNode childNode) ? ParseNode(childNode, targetType, settings) : null;
@@ -416,7 +416,7 @@ public static class ConfigSerializer
     {
         object?[] parsed;
         // For node-based objects
-        if (typeof(IConfigNode).IsAssignableFrom(targetType))
+        if (targetType.IsConfigType())
         {
             // If no nodes of given name, return an empty array
             if (!node.HasNode(name)) return [];

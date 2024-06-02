@@ -7,4 +7,4 @@ namespace ConfigLoader;
 /// <summary>
 /// Autoloading Config Object interface
 /// </summary>
-public interface ISerializableConfig : IConfigNode;
+public interface ISerializableConfig;

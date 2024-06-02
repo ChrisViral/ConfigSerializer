@@ -7,8 +7,11 @@ namespace ConfigLoader.Extensions;
 
 internal static class TypeExtensions
 {
-    private static readonly Type CollectionType = typeof(ICollection<>);
     private static readonly Dictionary<Type, object> DefaultsByType = new();
+    private static readonly Type CollectionType = typeof(ICollection<>);
+    private static readonly Type ConfigNodeInterfaceType = typeof(IConfigNode);
+    private static readonly Type SerializableConfigInterfaceType = typeof(ISerializableConfig);
+    private static readonly Type ConfigNodeType = typeof(ConfigNode);
 
     public static object GetDefault(this Type type)
     {
@@ -47,6 +50,13 @@ internal static class TypeExtensions
     public static bool IsGenericICollectionType(this Type type)
     {
         return type.IsArray || (type.IsGenericType && type.GetGenericTypeDefinition() == CollectionType);
+    }
+
+    public static bool IsConfigType(this Type type)
+    {
+        return ConfigNodeInterfaceType.IsAssignableFrom(type)
+            || SerializableConfigInterfaceType.IsAssignableFrom(type)
+            || ConfigNodeType.IsAssignableFrom(type);
     }
 
     public static bool IsInstantiable(this Type type)
