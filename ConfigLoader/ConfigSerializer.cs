@@ -13,26 +13,47 @@ using ConfigLoader.Parsers;
 
 namespace ConfigLoader;
 
+/// <summary>
+/// Config object serializer
+/// </summary>
 public static class ConfigSerializer
 {
+    /// <summary>
+    /// Serializable member cache
+    /// </summary>
+    /// <typeparam name="T">Type of element to serialize</typeparam>
     private static class SerializableMembers<T> where T : ISerializableConfig
     {
         private const MemberTypes MEMBERS = MemberTypes.Field | MemberTypes.Property;
         private const BindingFlags FLAGS  = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
+        /// <summary>
+        /// Serializable members for this type
+        /// </summary>
+        /// ReSharper disable once StaticMemberInGenericType
         public static ReadOnlyCollection<MemberInfo> Members { get; }
 
         static SerializableMembers()
         {
             // Get all relevant members in the type
-            Members = typeof(T).StripNullable().FindMembers(MEMBERS, FLAGS, FilterConfigMembers, null).ToList().AsReadOnly();
+            Members = typeof(T).StripNullable()
+                               .FindMembers(MEMBERS, FLAGS, FilterConfigMembers, null)
+                               .ToList()
+                               .AsReadOnly();
         }
 
+        /// <summary>
+        /// FindMember filter that ensures the members are valid and instantiatable
+        /// </summary>
+        /// <param name="member">Member to test</param>
+        /// <param name="criteria">Test criteria (unused)</param>
+        /// <returns><see langword="true"/> if the member is valid, <see langword="false"/> otherwise</returns>
         private static bool FilterConfigMembers(MemberInfo member, object criteria)
         {
             // Ensure the member has the proper attribute
             if (!member.IsDefined(typeof(ConfigFieldAttribute), false)) return false;
 
+            // Get targeted type
             Type? targetType = member switch
             {
                 FieldInfo field       => field.FieldType,
@@ -53,10 +74,17 @@ public static class ConfigSerializer
     #endregion
 
     #region Deserialize
+    /// <summary>
+    /// Creates a new instance and deserializes to config data into it
+    /// </summary>
+    /// <typeparam name="T">Config type to deserialize</typeparam>
+    /// <param name="node">Source node to deserialize from</param>
+    /// <param name="serializerSettings">Serializer settings, leave blank to use default settings</param>
+    /// <returns>The deserialized value</returns>
+    /// <exception cref="ArgumentNullException">If <paramref name="node"/> is <see langword="null"/></exception>
     public static T Deserialize<T>(ConfigNode node, in ConfigSerializerSettings? serializerSettings = null) where T : ISerializableConfig, new()
     {
         if (node is null) throw new ArgumentNullException(nameof(node), "ConfigNode cannot be null");
-        if (typeof(T).IsInstantiable()) throw new InvalidOperationException($"Type {typeof(T).Name} is not instantiable");
 
         // Create instance and deserialize into it
         T instance = new();
@@ -64,11 +92,25 @@ public static class ConfigSerializer
         return instance;
     }
 
+    /// <summary>
+    /// Deserializes the given config using the passed defaults
+    /// </summary>
+    /// <typeparam name="T">Config type to deserialize</typeparam>
+    /// <param name="node">Source node to deserialize from</param>
+    /// <param name="defaults">Value to get defaults for each fields from (will be modified if a reference type)</param>
+    /// <param name="serializerSettings">Serializer settings, leave blank to use default settings</param>
+    /// <returns>The deserialized based from the defaults</returns>
+    /// <exception cref="ArgumentNullException">If <paramref name="node"/> or <paramref name="defaults"/> is <see langword="null"/></exception>
+    public static T Deserialize<T>(ConfigNode node, T defaults, in ConfigSerializerSettings? serializerSettings = null) where T : ISerializableConfig
+    {
+        Deserialize(node, ref defaults, serializerSettings);
+        return defaults;
+    }
+
     public static void Deserialize<T>(ConfigNode node, ref T instance, in ConfigSerializerSettings? serializerSettings = null) where T : ISerializableConfig
     {
         if (node is null) throw new ArgumentNullException(nameof(node), "ConfigNode cannot be null");
         if (instance == null) throw new ArgumentNullException(nameof(instance), "Instance to populate cannot be null");
-        if (typeof(T).IsInstantiable()) throw new InvalidOperationException($"Type {typeof(T).Name} is not instantiable");
 
         // Boxing now prevents value type data loss, we'll have to box it eventually anyway
         object boxedInstance = instance;
@@ -90,32 +132,7 @@ public static class ConfigSerializer
         // Unbox the value
         instance = (T)boxedInstance;
     }
-    #endregion
 
-    #region Serialize
-    public static ConfigNode Serialize<T>(T instance, string nodeName, in ConfigSerializerSettings? serializerSettings = null) where T : ISerializableConfig
-    {
-        if (instance is null) throw new ArgumentNullException(nameof(instance), "Instance to serialize cannot be null");
-        if (string.IsNullOrEmpty(nodeName)) throw new ArgumentNullException(nameof(nodeName), "ConfigNode name cannot be null or empty");
-        if (typeof(T).IsInstantiable()) throw new InvalidOperationException($"Type {typeof(T).Name} is not instantiable");
-
-        ConfigNode node = new(nodeName);
-        Serialize(instance, node, serializerSettings);
-        return node;
-    }
-
-    public static void Serialize<T>(T instance, ConfigNode node, in ConfigSerializerSettings? serializerSettings = null) where T : ISerializableConfig
-    {
-        if (instance == null) throw new ArgumentNullException(nameof(instance), "Instance to serialize cannot be null");
-        if (node is null) throw new ArgumentNullException(nameof(node), "ConfigNode cannot be null");
-        if (typeof(T).IsInstantiable()) throw new InvalidOperationException($"Type {typeof(T).Name} is not instantiable");
-
-        ConfigSerializerSettings settings = serializerSettings ?? new ConfigSerializerSettings();
-
-    }
-    #endregion
-
-    #region Methods
     private static void LoadMember(MemberInfo member, ConfigNode node, object instance, in ConfigSerializerSettings settings)
     {
         // Get load data
@@ -216,11 +233,11 @@ public static class ConfigSerializer
         // For node-based objects
         if (typeof(IConfigNode).IsAssignableFrom(targetType))
         {
-            // Get nodes of given name
-            ConfigNode[] nodes = node.GetNodes(name);
-            if (nodes.Length is 0) return [];
+            // If no nodes of given name, return an empty array
+            if (!node.HasNode(name)) return [];
 
             // Parse individually and slot in output array
+            ConfigNode[] nodes = node.GetNodes(name);
             parsed = new object[nodes.Length];
             for (int i = 0; i < nodes.Length; i++)
             {
@@ -234,15 +251,16 @@ public static class ConfigSerializer
         switch (settings.ArrayHandling)
         {
             case ArrayHandling.SINGLE_VALUE:
-            {
                 // Load multiple values on one line
                 if (!node.TryGetValue(name, out string allValues)) return [];
 
                 values = Utils.ParseArray(allValues, settings.ArraySeparator);
+                if (values.Length is 0) return [];
                 break;
-            }
 
             case ArrayHandling.SEPARATE_VALUES:
+                if (!node.HasValue(name)) return [];
+
                 // Load multiple values on separate lines
                 values = node.GetValues(name);
                 break;
@@ -250,8 +268,6 @@ public static class ConfigSerializer
             default:
                 return [];
         }
-
-        if (values.Length is 0) return [];
 
         // Parse individually and slot in output array
         parsed = new object?[values.Length];
@@ -291,6 +307,29 @@ public static class ConfigSerializer
         }
 
         return null;
+    }
+    #endregion
+
+    #region Serialize
+    public static ConfigNode Serialize<T>(T instance, string nodeName, in ConfigSerializerSettings? serializerSettings = null) where T : ISerializableConfig
+    {
+        if (instance is null) throw new ArgumentNullException(nameof(instance), "Instance to serialize cannot be null");
+        if (string.IsNullOrEmpty(nodeName)) throw new ArgumentNullException(nameof(nodeName), "ConfigNode name cannot be null or empty");
+        if (typeof(T).IsInstantiable()) throw new InvalidOperationException($"Type {typeof(T).Name} is not instantiable");
+
+        ConfigNode node = new(nodeName);
+        Serialize(instance, node, serializerSettings);
+        return node;
+    }
+
+    public static void Serialize<T>(T instance, ConfigNode node, in ConfigSerializerSettings? serializerSettings = null) where T : ISerializableConfig
+    {
+        if (instance == null) throw new ArgumentNullException(nameof(instance), "Instance to serialize cannot be null");
+        if (node is null) throw new ArgumentNullException(nameof(node), "ConfigNode cannot be null");
+        if (typeof(T).IsInstantiable()) throw new InvalidOperationException($"Type {typeof(T).Name} is not instantiable");
+
+        ConfigSerializerSettings settings = serializerSettings ?? new ConfigSerializerSettings();
+
     }
     #endregion
 }
