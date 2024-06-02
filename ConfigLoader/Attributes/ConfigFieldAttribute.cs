@@ -24,10 +24,10 @@ public sealed class ConfigFieldAttribute : Attribute
     /// <summary>
     /// How loading of array values is handled, defaults to <see cref="ArrayHandling.SINGLE_VALUE"/>;
     /// </summary>
-    public ArrayHandling? ArrayHandling { get; init; }
+    public ArrayHandling ArrayHandling { get; init; } = ArrayHandling.NONE;
     /// <summary>
     /// Separator string for array types
     /// </summary>
-    public char? ArraySeparator { get; init; }
+    public string? ArraySeparator { get; init; } = string.Empty;
     #endregion
 }

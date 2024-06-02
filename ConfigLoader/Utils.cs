@@ -37,6 +37,22 @@ internal static class Utils
     }
 
     /// <summary>
+    /// Parses a string line with given delimiter to a string array. Entries are space trimmed and are never empty
+    /// </summary>
+    /// <param name="text">Text to parse</param>
+    /// <param name="delimiters">Char delimiters to separate the array</param>
+    /// <returns>The resulting string non-empty string array</returns>
+    public static string[] ParseArray(string text, params string[] delimiters)
+    {
+        string[] array = text.Split(delimiters, StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 0; i < array.Length; i++)
+        {
+            array[i] = array[i].Trim();
+        }
+        return array;
+    }
+
+    /// <summary>
     /// Logs the given exception
     /// </summary>
     /// <param name="header">Log header</param>

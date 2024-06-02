@@ -4,24 +4,25 @@ namespace ConfigLoader;
 
 public enum ArrayHandling
 {
+    NONE,
     SINGLE_VALUE,
     SEPARATE_VALUES
 }
 
 public readonly record struct ConfigSerializerSettings(ArrayHandling ArrayHandling = ArrayHandling.SINGLE_VALUE,
-                                                       char ArraySeparator = ',')
+                                                       string ArraySeparator = ",")
 {
     public ConfigSerializerSettings ApplyAttributeOverrides(ConfigFieldAttribute fieldAttribute)
     {
         ConfigSerializerSettings updatedSettings = this;
-        if (fieldAttribute.ArrayHandling is not null && fieldAttribute.ArrayHandling != this.ArrayHandling)
+        if (fieldAttribute.ArrayHandling is not ArrayHandling.NONE && fieldAttribute.ArrayHandling != this.ArrayHandling)
         {
-            updatedSettings = updatedSettings with { ArrayHandling = fieldAttribute.ArrayHandling.Value };
+            updatedSettings = updatedSettings with { ArrayHandling = fieldAttribute.ArrayHandling };
         }
 
-        if (fieldAttribute.ArraySeparator is not null && fieldAttribute.ArraySeparator != this.ArraySeparator)
+        if (!string.IsNullOrEmpty(fieldAttribute.ArraySeparator) && fieldAttribute.ArraySeparator != this.ArraySeparator)
         {
-            updatedSettings = updatedSettings with { ArraySeparator = fieldAttribute.ArraySeparator.Value };
+            updatedSettings = updatedSettings with { ArraySeparator = fieldAttribute.ArraySeparator! };
         }
 
         return updatedSettings;

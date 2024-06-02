@@ -206,7 +206,7 @@ public static class ConfigSerializer
                     }
 
                     // Clear out final separator and add to node
-                    valueBuilder.Length--;
+                    valueBuilder.Length -= settings.ArraySeparator.Length;
                     node.AddValue(name, valueBuilder.ToStringAndRelease());
                     break;
 
