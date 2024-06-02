@@ -4,4 +4,7 @@
 
 namespace ConfigLoader.Parsers;
 
-public interface IConfigValueParser : IConfigParserBase<string>;
+public interface IConfigValueParser : IConfigParserBase<string>
+{
+    string Save(object value, in ConfigSerializerSettings settings);
+}

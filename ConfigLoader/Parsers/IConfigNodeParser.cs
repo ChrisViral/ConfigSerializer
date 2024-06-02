@@ -4,4 +4,7 @@
 
 namespace ConfigLoader.Parsers;
 
-public interface IConfigNodeParser : IConfigParserBase<ConfigNode>;
+public interface IConfigNodeParser : IConfigParserBase<ConfigNode>
+{
+    void Save(ConfigNode node, object value, in ConfigSerializerSettings settings);
+}

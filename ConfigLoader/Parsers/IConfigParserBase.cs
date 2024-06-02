@@ -13,9 +13,7 @@ public interface IConfigParserBase;
 /// Config Parser generic base
 /// </summary>
 /// <typeparam name="T">Type of object being parsed</typeparam>
-public interface IConfigParserBase<T> : IConfigParserBase
+public interface IConfigParserBase<in T> : IConfigParserBase
 {
-    object Parse(T node, in ConfigSerializerSettings settings);
-
-    T Save(object obj, in ConfigSerializerSettings settings);
+    object Parse(T value, in ConfigSerializerSettings settings);
 }
