@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace ConfigLoader.Extensions;
 
 internal static class TypeExtensions
 {
+    private static readonly Type CollectionType = typeof(ICollection<>);
     private static readonly Dictionary<Type, object> DefaultsByType = new();
 
     public static object GetDefault(this Type type)
@@ -22,9 +24,29 @@ internal static class TypeExtensions
         return def;
     }
 
-    public static bool IsCollectionType(this Type type)
+    public static bool IsCollectionType(this Type type, out Type? elementType)
     {
-        return type is { IsGenericType: true } && type.GetGenericTypeDefinition() == typeof(ICollection<>);
+        if (type is null) throw new ArgumentNullException(nameof(type), "Type to check cannot be null");
+
+        Type? collectionType = type;
+        if (!collectionType.IsGenericICollectionType())
+        {
+            collectionType = type.GetInterfaces().FirstOrDefault(IsGenericICollectionType);
+        }
+
+        if (collectionType is not null)
+        {
+            elementType = collectionType.GetGenericArguments()[0];
+            return true;
+        }
+
+        elementType = null;
+        return false;
+    }
+
+    public static bool IsGenericICollectionType(this Type type)
+    {
+        return type.IsArray || (type.IsGenericType && type.GetGenericTypeDefinition() == CollectionType);
     }
 
     public static bool IsInstantiable(this Type type)
