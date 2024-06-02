@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using ConfigLoader.Attributes;
 using ConfigLoader.Extensions;
 using ConfigLoader.Parsers;
@@ -99,7 +102,7 @@ public static class ConfigSerializer
     /// <param name="node">Source node to deserialize from</param>
     /// <param name="defaults">Value to get defaults for each fields from (will be modified if a reference type)</param>
     /// <param name="serializerSettings">Serializer settings, leave blank to use default settings</param>
-    /// <returns>The deserialized based from the defaults</returns>
+    /// <returns>The deserialized value into <paramref name="defaults"/>, if it is a reference type, the original reference is returned</returns>
     /// <exception cref="ArgumentNullException">If <paramref name="node"/> or <paramref name="defaults"/> is <see langword="null"/></exception>
     public static T Deserialize<T>(ConfigNode node, T defaults, in ConfigSerializerSettings? serializerSettings = null) where T : ISerializableConfig
     {
@@ -107,6 +110,14 @@ public static class ConfigSerializer
         return defaults;
     }
 
+    /// <summary>
+    /// Deserializes the given config into the passed instance
+    /// </summary>
+    /// <typeparam name="T">Config type to deserialize</typeparam>
+    /// <param name="node">Source node to deserialize from</param>
+    /// <param name="instance">Value to deserialize into</param>
+    /// <param name="serializerSettings">Serializer settings, leave blank to use default settings</param>
+    /// <exception cref="ArgumentNullException">If <paramref name="node"/> or <paramref name="instance"/> is <see langword="null"/></exception>
     public static void Deserialize<T>(ConfigNode node, ref T instance, in ConfigSerializerSettings? serializerSettings = null) where T : ISerializableConfig
     {
         if (node is null) throw new ArgumentNullException(nameof(node), "ConfigNode cannot be null");
@@ -145,26 +156,20 @@ public static class ConfigSerializer
         {
             case FieldInfo field:
                 object? value = ParseMember(node, name, field.FieldType, memberSettings);
-                EnsureMemberLoaded(value, name, attribute.Required);
+                if (!EnsureMemberValid(value, name, attribute.Required)) return;
+
                 field.SetValue(instance, value);
                 break;
 
             case PropertyInfo property:
                 value = ParseMember(node, name, property.PropertyType, memberSettings);
-                EnsureMemberLoaded(value, name, attribute.Required);
+                if (!EnsureMemberValid(value, name, attribute.Required)) return;
+
                 property.SetValue(instance, value);
                 break;
 
             default:
                 throw new InvalidOperationException($"Invalid member type detected ({member.GetType()})");
-        }
-    }
-
-    private static void EnsureMemberLoaded(object? loadedValue, string name, bool required)
-    {
-        if (loadedValue is null && required)
-        {
-            throw new MissingConfigFieldException("Field could not be properly loaded", name);
         }
     }
 
@@ -178,10 +183,10 @@ public static class ConfigSerializer
             return ParseArray(node, name, targetType.GetElementType()!.StripNullable(), settings);
         }
 
-        if (targetType.IsCollectionType())
+        if (targetType.IsCollectionType(out Type? elementType))
         {
             // Parse collection of value or nodes
-            return ParseCollection(node, name, targetType, targetType.GetGenericArguments()[0].StripNullable(), settings);
+            return ParseCollection(node, name, targetType, elementType!.StripNullable(), settings);
         }
 
         // ReSharper disable once ConvertIfStatementToReturnStatement
@@ -250,6 +255,7 @@ public static class ConfigSerializer
         string[] values;
         switch (settings.ArrayHandling)
         {
+
             case ArrayHandling.SINGLE_VALUE:
                 // Load multiple values on one line
                 if (!node.TryGetValue(name, out string allValues)) return [];
@@ -266,7 +272,8 @@ public static class ConfigSerializer
                 break;
 
             default:
-                return [];
+                // Default to single if invalid
+                goto case ArrayHandling.SINGLE_VALUE;
         }
 
         // Parse individually and slot in output array
@@ -315,21 +322,156 @@ public static class ConfigSerializer
     {
         if (instance is null) throw new ArgumentNullException(nameof(instance), "Instance to serialize cannot be null");
         if (string.IsNullOrEmpty(nodeName)) throw new ArgumentNullException(nameof(nodeName), "ConfigNode name cannot be null or empty");
-        if (typeof(T).IsInstantiable()) throw new InvalidOperationException($"Type {typeof(T).Name} is not instantiable");
 
         ConfigNode node = new(nodeName);
-        Serialize(instance, node, serializerSettings);
+        Serialize(node, instance, serializerSettings);
         return node;
     }
 
-    public static void Serialize<T>(T instance, ConfigNode node, in ConfigSerializerSettings? serializerSettings = null) where T : ISerializableConfig
+    public static void Serialize<T>(ConfigNode node, T instance, in ConfigSerializerSettings? serializerSettings = null) where T : ISerializableConfig
     {
         if (instance == null) throw new ArgumentNullException(nameof(instance), "Instance to serialize cannot be null");
         if (node is null) throw new ArgumentNullException(nameof(node), "ConfigNode cannot be null");
-        if (typeof(T).IsInstantiable()) throw new InvalidOperationException($"Type {typeof(T).Name} is not instantiable");
 
+        // Boxing now prevents value type data loss, we'll have to box it eventually anyway
+        object boxedInstance = instance;
         ConfigSerializerSettings settings = serializerSettings ?? new ConfigSerializerSettings();
 
+        // Load all members individually
+        foreach (MemberInfo member in SerializableMembers<T>.Members)
+        {
+            try
+            {
+                SaveMember(member, node, boxedInstance, settings);
+            }
+            catch (Exception e)
+            {
+                Utils.LogException(nameof(ConfigSerializer), $"Could not load {member.Name} while deserializing {typeof(T).FullName}", e);
+            }
+        }
+    }
+
+    private static void SaveMember(MemberInfo member, ConfigNode node, object instance, in ConfigSerializerSettings settings)
+    {
+        // Get load data
+        ConfigFieldAttribute attribute = member.GetCustomAttribute<ConfigFieldAttribute>();
+        string name = string.IsNullOrEmpty(attribute.Name) ? member.Name : attribute.Name;
+        ConfigSerializerSettings memberSettings = settings.ApplyAttributeOverrides(attribute);
+
+        // Parse and assign members, ignore if did not load
+        switch (member)
+        {
+            case FieldInfo field:
+                object? value = field.GetValue(instance);
+                if (!EnsureMemberValid(value, name, attribute.Required)) return;
+
+                WriteMember(node, name, value, field.FieldType, memberSettings);
+                break;
+
+            case PropertyInfo property:
+                value = property.GetValue(instance);
+                if (!EnsureMemberValid(value, name, attribute.Required)) return;
+
+                WriteMember(node, name, value, property.PropertyType, memberSettings);
+                break;
+
+            default:
+                throw new InvalidOperationException($"Invalid member type detected ({member.GetType()})");
+        }
+    }
+
+    private static void WriteMember(ConfigNode node, string name, object value, Type targetType, in ConfigSerializerSettings settings)
+    {
+        targetType = targetType.StripNullable();
+        if (targetType.IsCollectionType(out Type? elementType))
+        {
+            WriteCollection(node, name, value, targetType, elementType!.StripNullable(), settings);
+        }
+        else if (typeof(IConfigNode).IsAssignableFrom(targetType))
+        {
+            ConfigNode savedNode = WriteNode(name, value, targetType, settings);
+            node.AddNode(savedNode);
+        }
+        else
+        {
+            string savedValue = WriteValue(value, targetType, settings);
+            node.AddNode(name, savedValue);
+        }
+    }
+
+    private static void WriteCollection(ConfigNode node, string name, object value, Type targetType, Type elementType, in ConfigSerializerSettings settings)
+    {
+        IEnumerable collectionEnumerable = (IEnumerable)value;
+        if (typeof(IConfigNode).IsAssignableFrom(elementType))
+        {
+            foreach (object element in collectionEnumerable)
+            {
+                ConfigNode savedNode = WriteNode(name, element, elementType, settings);
+                node.AddNode(savedNode);
+            }
+        }
+        else
+        {
+            switch (settings.ArrayHandling)
+            {
+                case ArrayHandling.SINGLE_VALUE:
+                    StringBuilder valueBuilder = StringBuilderCache.Acquire();
+                    foreach (object element in collectionEnumerable)
+                    {
+                        string savedValue = WriteValue(element, elementType, settings);
+                        valueBuilder.Append(savedValue).Append(settings.ArraySeparator);
+                    }
+
+                    // Clear out final separator and add to node
+                    valueBuilder.Length--;
+                    node.AddValue(name, valueBuilder.ToStringAndRelease());
+                    break;
+
+                case ArrayHandling.SEPARATE_VALUES:
+                    foreach (object element in collectionEnumerable)
+                    {
+                        string savedValue = WriteValue(element, elementType, settings);
+                        node.AddValue(name, savedValue);
+                    }
+                    break;
+
+                default:
+                    // Default to single if invalid
+                    goto case ArrayHandling.SINGLE_VALUE;
+            }
+        }
+    }
+
+    private static ConfigNode WriteNode(string name, object value, Type targetType, in ConfigSerializerSettings settings)
+    {
+        // Find correct parser and deserialize
+        ConfigNode savedNode = new(name);
+        if (ParserDatabase.Instance.NodeParsers.TryFindBestParserForType(targetType, out IConfigNodeParser? parser))
+        {
+            parser!.Save(savedNode, value, settings);
+        }
+
+        return savedNode;
+    }
+
+    private static string WriteValue(object value, Type targetType, in ConfigSerializerSettings settings)
+    {
+        if (ParserDatabase.Instance.ValueParsers.TryFindBestParserForType(targetType, out IConfigValueParser? parser))
+        {
+            // ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
+            return parser!.Save(value, settings) ?? string.Empty;
+        }
+
+        return string.Empty;
+    }
+    #endregion
+
+    #region Helper methods
+    private static bool EnsureMemberValid(object? value, string name, bool required)
+    {
+        if (value is not null) return true;
+
+        return required ? throw new MissingConfigFieldException("Field could not be properly loaded", name) : false;
     }
     #endregion
 }
