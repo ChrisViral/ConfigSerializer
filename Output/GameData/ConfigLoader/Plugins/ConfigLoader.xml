@@ -19,12 +19,22 @@
             If this config field is required to exist during deserialization
             </summary>
         </member>
-        <member name="P:ConfigLoader.Attributes.ConfigFieldAttribute.Separator">
+        <member name="P:ConfigLoader.Attributes.ConfigFieldAttribute.ArrayHandling">
+            <summary>
+            How loading of array values is handled, defaults to <see cref="F:ConfigLoader.ArrayHandling.SINGLE_VALUE"/>;
+            </summary>
+        </member>
+        <member name="P:ConfigLoader.Attributes.ConfigFieldAttribute.ArraySeparator">
             <summary>
             Separator string for array types
             </summary>
         </member>
         <member name="T:ConfigLoader.Attributes.ConfigParserAttribute">
+            <summary>
+            Config parser attribute
+            </summary>
+        </member>
+        <member name="M:ConfigLoader.Attributes.ConfigParserAttribute.#ctor(System.Type)">
             <summary>
             Config parser attribute
             </summary>
@@ -41,52 +51,20 @@
         </member>
         <member name="T:ConfigLoader.ConfigObject">
             <summary>
-            Base class for objects that can be auto-loaded from ConfigNodes using the ConfigFieldAttribute
+            Base class for auto-serializing <see cref="T:IConfigNode"/> implementations
             </summary>
-        </member>
-        <member name="P:ConfigLoader.ConfigObject.NodeName">
-            <summary>
-            Name used for the ConfigNode when saving, must be overriden to change from the default "NODE"
-            </summary>
-        </member>
-        <member name="M:ConfigLoader.ConfigObject.#ctor(ConfigNode,System.Boolean)">
-            <summary>
-            Creates a ConfigObject from the given ConfigNode
-            </summary>
-            <param name="node">ConfigNode to load the object from</param>
-            <param name="load">If the object should be loaded right away, defaults to true</param>
-        </member>
-        <member name="M:ConfigLoader.ConfigObject.GetValue(ConfigNode,System.String,System.Type,System.Boolean)">
-            <summary>
-            Loads the given value from a ConfigNode
-            </summary>
-            <param name="node">Node to get the value from</param>
-            <param name="name">Name of the value to get</param>
-            <param name="type">Type of value to get</param>
-            <param name="mandatory">If this field is mandatory or not</param>
-            <returns>The loaded value from the node</returns>
-            <exception cref="T:ConfigLoader.MissingConfigFieldException">Thrown when a mandatory field is not found or could not be loaded</exception>
-        </member>
-        <member name="M:ConfigLoader.ConfigObject.AddValue(ConfigNode,System.Object,System.String)">
-            <summary>
-            Add a value or node to the given ConfigNode
-            </summary>
-            <param name="node">Node to add the value or node to</param>
-            <param name="value">Value or node to add</param>
-            <param name="name">Name of the value (not used for nodes)</param>
         </member>
         <member name="M:ConfigLoader.ConfigObject.Load(ConfigNode)">
             <summary>
-            Loads data from the given ConfigNode to the object
+            Loads the object from the given node
             </summary>
-            <param name="node">ConfigNode to load data from</param>
+            <param name="node">Node to load from</param>
         </member>
-        <member name="M:ConfigLoader.ConfigObject.Save">
+        <member name="M:ConfigLoader.ConfigObject.Save(ConfigNode)">
             <summary>
-            Saves the ConfigObject to a ConfigNode, then returns it
-            The name of the created ConfigNode is taken from the NodeName property
+            Saves the object to the given node
             </summary>
-            <returns>The created ConfigNode containing the saved data</returns>
+            <param name="node">Node to save to</param>
         </member>
         <member name="M:ConfigLoader.Extensions.ConfigNodeExtensions.TryGetNode(ConfigNode,System.String,ConfigNode@)">
             <summary>
@@ -151,6 +129,16 @@
             <param name="result">Resulting Vector3 value</param>
             <returns>True if the value has been found, false otherwise</returns>
         </member>
+        <member name="M:ConfigLoader.Extensions.DictionaryExtensions.Deconstruct``2(System.Collections.Generic.KeyValuePair{``0,``1},``0@,``1@)">
+            <summary>
+            Tuple deconstruction of a KeyValuePair
+            </summary>
+            <typeparam name="TKey">Key type</typeparam>
+            <typeparam name="TValue">Value type</typeparam>
+            <param name="pair">Pair to deconstruct</param>
+            <param name="key">Key output value</param>
+            <param name="value">Value output value</param>
+        </member>
         <member name="M:ConfigLoader.Extensions.LoggingExtensions.Log(UnityEngine.Object,System.Object)">
             <summary>
             Logs the given message
@@ -209,15 +197,92 @@
             <param name="message">Error message to log</param>
             <param name="e">Exception to log</param>
         </member>
-        <member name="T:ConfigLoader.IConfigObject">
+        <member name="T:ConfigLoader.ISerializableConfig">
             <summary>
             Autoloading Config Object interface
             </summary>
         </member>
-        <member name="P:ConfigLoader.IConfigObject.Name">
+        <member name="T:ConfigLoader.ConfigSerializer">
             <summary>
-            Name of the ConfigNode to save/load to
+            Config object serializer
             </summary>
+        </member>
+        <member name="T:ConfigLoader.ConfigSerializer.SerializableMembers`1">
+            <summary>
+            Serializable member cache
+            </summary>
+            <typeparam name="T">Type of element to serialize</typeparam>
+        </member>
+        <member name="P:ConfigLoader.ConfigSerializer.SerializableMembers`1.Members">
+            <summary>
+            Serializable members for this type
+            </summary>
+            ReSharper disable once StaticMemberInGenericType
+        </member>
+        <member name="M:ConfigLoader.ConfigSerializer.SerializableMembers`1.FilterConfigMembers(System.Reflection.MemberInfo,System.Object)">
+            <summary>
+            FindMember filter that ensures the members are valid and instantiatable
+            </summary>
+            <param name="member">Member to test</param>
+            <param name="criteria">Test criteria (unused)</param>
+            <returns><see langword="true"/> if the member is valid, <see langword="false"/> otherwise</returns>
+        </member>
+        <member name="F:ConfigLoader.ConfigSerializer.CollectionAddParameters">
+            <summary>
+            ICollection Add reflection parameter buffer
+            </summary>
+        </member>
+        <member name="M:ConfigLoader.ConfigSerializer.Serialize``1(System.String,``0,System.Nullable{ConfigLoader.ConfigSerializerSettings}@)">
+            <summary>
+            Serializes the object to a <see cref="T:ConfigNode"/> and returns it
+            </summary>
+            <typeparam name="T">Type of object to Serialize</typeparam>
+            <param name="nodeName">Name of the ConfigNode to serialize it to</param>
+            <param name="instance">Object to serialize</param>
+            <param name="serializerSettings">Serializer settings, leave blank to use default settings</param>
+            <returns>The serialized ConfigNode version of <paramref name="instance"/></returns>
+            <exception cref="T:System.ArgumentNullException">Thrown if <paramref name="nodeName"/> or <paramref name="instance"/> is <see langword="null"/></exception>
+        </member>
+        <member name="M:ConfigLoader.ConfigSerializer.Serialize``1(ConfigNode,``0,System.Nullable{ConfigLoader.ConfigSerializerSettings}@)">
+            <summary>
+            Serializes the object to an existing <see cref="T:ConfigNode"/>
+            </summary>
+            <typeparam name="T">Type of object to Serialize</typeparam>
+            <param name="node">ConfigNode to save the object to</param>
+            <param name="instance">Object to serialize</param>
+            <param name="serializerSettings">Serializer settings, leave blank to use default settings</param>
+            <exception cref="T:System.ArgumentNullException">Thrown if <paramref name="node"/> or <paramref name="instance"/> is <see langword="null"/></exception>
+        </member>
+        <member name="M:ConfigLoader.ConfigSerializer.Deserialize``1(ConfigNode,System.Nullable{ConfigLoader.ConfigSerializerSettings}@)">
+            <summary>
+            Creates a new instance and deserializes to config data into it
+            </summary>
+            <typeparam name="T">Config type to deserialize</typeparam>
+            <param name="node">Source node to deserialize from</param>
+            <param name="serializerSettings">Serializer settings, leave blank to use default settings</param>
+            <returns>The deserialized value</returns>
+            <exception cref="T:System.ArgumentNullException">If <paramref name="node"/> is <see langword="null"/></exception>
+        </member>
+        <member name="M:ConfigLoader.ConfigSerializer.Deserialize``1(ConfigNode,``0,System.Nullable{ConfigLoader.ConfigSerializerSettings}@)">
+            <summary>
+            Deserializes the given config using the passed defaults
+            </summary>
+            <typeparam name="T">Config type to deserialize</typeparam>
+            <param name="node">Source node to deserialize from</param>
+            <param name="defaults">Value to get defaults for each fields from (will be modified if a reference type)</param>
+            <param name="serializerSettings">Serializer settings, leave blank to use default settings</param>
+            <returns>The deserialized value into <paramref name="defaults"/>, if it is a reference type, the original reference is returned</returns>
+            <exception cref="T:System.ArgumentNullException">If <paramref name="node"/> or <paramref name="defaults"/> is <see langword="null"/></exception>
+        </member>
+        <member name="M:ConfigLoader.ConfigSerializer.Deserialize``1(ConfigNode,``0@,System.Nullable{ConfigLoader.ConfigSerializerSettings}@)">
+            <summary>
+            Deserializes the given config into the passed instance
+            </summary>
+            <typeparam name="T">Config type to deserialize</typeparam>
+            <param name="node">Source node to deserialize from</param>
+            <param name="instance">Value to deserialize into</param>
+            <param name="serializerSettings">Serializer settings, leave blank to use default settings</param>
+            <exception cref="T:System.ArgumentNullException">If <paramref name="node"/> or <paramref name="instance"/> is <see langword="null"/></exception>
         </member>
         <member name="T:ConfigLoader.MissingConfigFieldException">
             <summary>
@@ -246,6 +311,12 @@
             <summary>
             Config Parser base
             </summary>
+        </member>
+        <member name="T:ConfigLoader.Parsers.IConfigParserBase`1">
+            <summary>
+            Config Parser generic base
+            </summary>
+            <typeparam name="T">Type of object being parsed</typeparam>
         </member>
         <member name="T:ConfigLoader.Parsers.ParserDatabase">
             <summary>
@@ -346,6 +417,22 @@
             <param name="text">Text to parse</param>
             <param name="delimiters">Char delimiters to separate the array</param>
             <returns>The resulting string non-empty string array</returns>
+        </member>
+        <member name="M:ConfigLoader.Utils.ParseArray(System.String,System.String[])">
+            <summary>
+            Parses a string line with given delimiter to a string array. Entries are space trimmed and are never empty
+            </summary>
+            <param name="text">Text to parse</param>
+            <param name="delimiters">Char delimiters to separate the array</param>
+            <returns>The resulting string non-empty string array</returns>
+        </member>
+        <member name="M:ConfigLoader.Utils.LogException(System.String,System.Object,System.Exception)">
+            <summary>
+            Logs the given exception
+            </summary>
+            <param name="header">Log header</param>
+            <param name="message">Error message to log</param>
+            <param name="e">Exception to log</param>
         </member>
         <member name="T:System.Runtime.CompilerServices.IsExternalInit">
             <summary>
